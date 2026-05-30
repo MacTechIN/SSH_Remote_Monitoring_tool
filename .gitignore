@@ -17,4 +17,7 @@ web/src/design-tokens/.sync-last-run.json
 firebase-debug.log
 functions/venv/
 functions/.env
+.firebase-emulator-data/
+firestore-debug.log
+ui-debug.log
 .firebaserc

@@ -13,8 +13,7 @@ if str(BACKEND) not in sys.path:
 
 from app.core.config import get_settings
 from app.core.security import decrypt_secret
-from app.models.entities import ProcessClass
-from app.services.classifier import DEFAULT_SYSTEM_COMM, classify_process
+from classifier_local import DEFAULT_SYSTEM_COMM, ProcessClass, Rule, classify_process
 from app.services.parser import PARSER_VERSION, parse_ps, parse_who
 from app.services.ssh import run_on_host
 
@@ -51,14 +50,15 @@ def collect_host_firestore(repo: FirestoreRepo, host_id: str) -> dict | None:
     sessions_parsed = parse_who(who_out)
     rules_raw = repo.list_rules()
 
-    class _Rule:
-        def __init__(self, d: dict):
-            self.rule_type = d["rule_type"]
-            self.pattern = d["pattern"]
-            self.classification = ProcessClass(d["classification"])
-            self.enabled = d.get("enabled", True)
-
-    rules = [_Rule(r) for r in rules_raw]
+    rules = [
+        Rule(
+            rule_type=r["rule_type"],
+            pattern=r["pattern"],
+            classification=ProcessClass(r["classification"]),
+            enabled=r.get("enabled", True),
+        )
+        for r in rules_raw
+    ]
     processes = []
     for proc in processes_parsed:
         cls = classify_process(proc, sessions_parsed, rules)

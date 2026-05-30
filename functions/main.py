@@ -8,6 +8,7 @@ Firebase Cloud Functions entry points.
 from __future__ import annotations
 
 import json
+import os
 
 import httpx
 from firebase_admin import initialize_app
@@ -28,30 +29,43 @@ CORS = options.CorsOptions(
     cors_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
 )
 
+# 프로덕션(Cloud Functions)에서만 Secret Manager 바인딩; 에뮬레이터는 functions/.env
+_IS_PRODUCTION = bool(os.environ.get("K_SERVICE"))
+_API_OPTS: dict = {
+    "cors": CORS,
+    "memory": options.MemoryOption.MB_512,
+    "timeout_sec": 300,
+    "max_instances": 10,
+}
+_SCHEDULE_OPTS: dict = {
+    "memory": options.MemoryOption.MB_512,
+    "timeout_sec": 300,
+}
+if _IS_PRODUCTION:
+    _API_OPTS["secrets"] = ["ENCRYPTION_KEY", "JWT_SECRET", "ADMIN_USERNAME", "ADMIN_PASSWORD"]
+    _SCHEDULE_OPTS["secrets"] = ["ENCRYPTION_KEY", "JWT_SECRET"]
 
-@https_fn.on_request(
-    cors=CORS,
-    memory=options.MemoryOption.MB_1024,
-    timeout_sec=300,
-    max_instances=10,
-    secrets=["ENCRYPTION_KEY", "JWT_SECRET", "ADMIN_USERNAME", "ADMIN_PASSWORD"],
-)
-def api(req: https_fn.Request) -> https_fn.Response:
-    """HTTP API — same routes as Docker FastAPI (/api/v1/...)."""
+
+async def _proxy_to_fastapi(req: https_fn.Request) -> httpx.Response:
     path = req.path
     if req.query_string:
         path = f"{path}?{req.query_string}"
     url = f"http://firebase{path}"
-
-    with httpx.Client(transport=_asgi_transport, base_url="http://firebase") as client:
-        upstream = client.build_request(
+    async with httpx.AsyncClient(transport=_asgi_transport, base_url="http://firebase") as client:
+        return await client.request(
             method=req.method,
             url=url,
             headers={k: v for k, v in req.headers.items() if k.lower() != "host"},
             content=req.get_data(),
         )
-        response = client.send(upstream)
 
+
+@https_fn.on_request(**_API_OPTS)
+def api(req: https_fn.Request) -> https_fn.Response:
+    """HTTP API — same routes as Docker FastAPI (/api/v1/...)."""
+    import asyncio
+
+    response = asyncio.run(_proxy_to_fastapi(req))
     return https_fn.Response(
         response.content,
         status=response.status_code,
@@ -59,12 +73,7 @@ def api(req: https_fn.Request) -> https_fn.Response:
     )
 
 
-@scheduler_fn.on_schedule(
-    schedule="every 1 minutes",
-    memory=options.MemoryOption.MB_1024,
-    timeout_sec=300,
-    secrets=["ENCRYPTION_KEY", "JWT_SECRET"],
-)
+@scheduler_fn.on_schedule(schedule="every 1 minutes", **_SCHEDULE_OPTS)
 def scheduled_poll(event: scheduler_fn.ScheduledEvent) -> None:
     """Poll all enabled hosts (Celery Beat replacement)."""
     repo = FirestoreRepo()

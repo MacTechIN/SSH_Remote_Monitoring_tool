@@ -201,6 +201,7 @@ backend scaffold → Docker/Timescale/Alembic → SSH/Parser/Collector
 - [x] `web` — `npm run build:firebase` (static export)
 - [x] [docs/firebase-deploy.md](./docs/firebase-deploy.md)
 - [ ] 프로덕션 Firebase 프로젝트 ID·시크릿 설정 (운영자)
-- [ ] `firebase deploy` 검증
+- [x] 로컬 에뮬레이터 API 검증 (`/api/v1/health`, login)
+- [ ] `firebase deploy` 프로덕션 검증 (Blaze + `firebase login` 필요)
 
 **다음 액션:** Docker는 `docker compose up`, Firebase는 `docs/firebase-deploy.md` 참고.

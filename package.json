@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "web:build:firebase": "npm run build:firebase --prefix web",
-    "firebase:emulators": "firebase emulators:start",
-    "firebase:deploy": "npm run web:build:firebase && firebase deploy",
+    "firebase:emulators": "bash scripts/firebase-emulators.sh",
+    "firebase:deploy": "bash scripts/firebase-deploy.sh",
     "firebase:deploy:hosting": "npm run web:build:firebase && firebase deploy --only hosting",
     "firebase:deploy:functions": "firebase deploy --only functions",
     "firebase:deploy:firestore": "firebase deploy --only firestore"
