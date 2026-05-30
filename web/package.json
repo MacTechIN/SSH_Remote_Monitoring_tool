@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "tokens:sync": "node scripts/sync-tokens-from-figma.mjs"
+    "tokens:sync": "node scripts/sync-tokens-from-figma.mjs",
+    "build:firebase": "BUILD_FOR_FIREBASE=1 NEXT_PUBLIC_DEPLOY_TARGET=firebase NEXT_PUBLIC_API_URL= next build"
   },
   "dependencies": {
     "next": "^15.1.0",

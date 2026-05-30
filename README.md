@@ -8,7 +8,16 @@
 - **DB:** PostgreSQL + TimescaleDB
 - **Web:** Next.js 15 (View/Container + design tokens, Figma 대체 준비)
 
-## 빠른 시작
+## 배포 방식 (2가지)
+
+| 방식 | 문서 | 명령 |
+|------|------|------|
+| **Docker** (로컬·자체 서버) | 아래 빠른 시작 | `docker compose up --build` |
+| **Firebase** (Hosting + Functions + Firestore) | [docs/firebase-deploy.md](./docs/firebase-deploy.md) | `npm run firebase:deploy` |
+
+Docker 구성은 변경하지 않았습니다. Firebase용 코드는 `functions/`, `firebase.json` 에 추가되어 있습니다.
+
+## 빠른 시작 (Docker)
 
 ```bash
 cp .env.example .env
@@ -40,6 +49,7 @@ cd web && npm install && npm run dev
 
 - [research.md](./research.md) · [plan.md](./plan.md) · [implement.md](./implement.md)
 - [docs/design-system.md](./docs/design-system.md) — Figma UI 교체 규칙
+- [docs/firebase-deploy.md](./docs/firebase-deploy.md) — **Firebase 배포**
 - [web/DESIGN_HANDOFF.md](./web/DESIGN_HANDOFF.md)
 
 ## 주요 API

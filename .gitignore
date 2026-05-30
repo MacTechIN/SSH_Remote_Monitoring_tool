@@ -7,8 +7,14 @@ __pycache__/
 node_modules/
 .next/
 out/
+web/out/
 dist/
 *.egg-info/
 pgdata/
 web/src/design-tokens/.sync-last-run.json
 .DS_Store
+.firebase/
+firebase-debug.log
+functions/venv/
+functions/.env
+.firebaserc

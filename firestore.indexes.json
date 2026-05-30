@@ -1,0 +1,28 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "snapshots",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "collected_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "daily_activity_rollups",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host_id", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "daily_activity_rollups",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "date", "order": "ASCENDING" },
+        { "fieldPath": "host_id", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

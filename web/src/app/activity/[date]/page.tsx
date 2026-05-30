@@ -1,18 +1,21 @@
-"use client";
+import { ActivityDateClient } from "./ActivityDateClient";
 
-import { use } from "react";
-import { LoginGate } from "@/components/auth/LoginGate";
+export function generateStaticParams() {
+  const params: { date: string }[] = [];
+  const today = new Date();
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    params.push({ date: d.toISOString().slice(0, 10) });
+  }
+  return params;
+}
 
-export default function ActivityDatePage({ params }: { params: Promise<{ date: string }> }) {
-  const { date } = use(params);
-  return (
-    <LoginGate>
-      <div>
-        <h1>{date} — 시간대 상세</h1>
-        <p style={{ color: "var(--color-text-secondary)" }}>
-          Recharts 24h 차트는 Figma 수령 후 ActivityDayChartView로 연결됩니다.
-        </p>
-      </div>
-    </LoginGate>
-  );
+export default async function ActivityDatePage({
+  params,
+}: {
+  params: Promise<{ date: string }>;
+}) {
+  const { date } = await params;
+  return <ActivityDateClient date={date} />;
 }

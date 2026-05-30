@@ -10,6 +10,10 @@ export function useLiveWebSocket(hostId: string | null, onMessage: () => void) {
   useEffect(() => {
     if (!hostId) return;
     const url = wsLiveUrl(hostId);
+    if (!url) {
+      const interval = setInterval(() => cbRef.current(), 15_000);
+      return () => clearInterval(interval);
+    }
     const ws = new WebSocket(url);
     ws.onmessage = () => cbRef.current();
     return () => ws.close();

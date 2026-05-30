@@ -1,4 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+/** Firebase Hosting: same-origin /api rewrite → Cloud Functions */
+const API_URL =
+  process.env.NEXT_PUBLIC_DEPLOY_TARGET === "firebase"
+    ? ""
+    : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000");
+
+export const isFirebaseDeploy = process.env.NEXT_PUBLIC_DEPLOY_TARGET === "firebase";
 
 let authToken: string | null = null;
 
@@ -110,7 +116,8 @@ export const api = {
   },
 };
 
-export function wsLiveUrl(hostId: string): string {
-  const base = API_URL.replace(/^http/, "ws");
+export function wsLiveUrl(hostId: string): string | null {
+  if (isFirebaseDeploy) return null;
+  const base = (API_URL || "http://localhost:8000").replace(/^http/, "ws");
   return `${base}/ws/v1/live?host_id=${hostId}`;
 }

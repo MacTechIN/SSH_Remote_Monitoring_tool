@@ -1,0 +1,15 @@
+{
+  "name": "ssh-remote-monitoring-tool",
+  "private": true,
+  "scripts": {
+    "web:build:firebase": "npm run build:firebase --prefix web",
+    "firebase:emulators": "firebase emulators:start",
+    "firebase:deploy": "npm run web:build:firebase && firebase deploy",
+    "firebase:deploy:hosting": "npm run web:build:firebase && firebase deploy --only hosting",
+    "firebase:deploy:functions": "firebase deploy --only functions",
+    "firebase:deploy:firestore": "firebase deploy --only firestore"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.29.0"
+  }
+}
