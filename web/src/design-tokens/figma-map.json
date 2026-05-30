@@ -1,0 +1,16 @@
+{
+  "description": "Figma Variables collection/path → CSS custom property. tokens:sync 스크립트 입력.",
+  "mappings": [
+    { "figma": "color/background", "cssVar": "--color-background", "tokenPath": "color.background" },
+    { "figma": "color/surface", "cssVar": "--color-surface", "tokenPath": "color.surface" },
+    { "figma": "color/text-primary", "cssVar": "--color-text-primary", "tokenPath": "color.textPrimary" },
+    { "figma": "color/accent", "cssVar": "--color-accent", "tokenPath": "color.accent" },
+    { "figma": "activity/level-0", "cssVar": "--activity-0", "tokenPath": "activity.0" },
+    { "figma": "activity/level-1", "cssVar": "--activity-1", "tokenPath": "activity.1" },
+    { "figma": "activity/level-2", "cssVar": "--activity-2", "tokenPath": "activity.2" },
+    { "figma": "activity/level-3", "cssVar": "--activity-3", "tokenPath": "activity.3" },
+    { "figma": "activity/level-4", "cssVar": "--activity-4", "tokenPath": "activity.4" },
+    { "figma": "spacing/md", "cssVar": "--spacing-md", "tokenPath": "spacing.md" },
+    { "figma": "radius/md", "cssVar": "--radius-md", "tokenPath": "radius.md" }
+  ]
+}

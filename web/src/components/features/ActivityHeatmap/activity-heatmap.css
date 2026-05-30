@@ -1,0 +1,43 @@
+.activity-heatmap__toolbar {
+  margin-bottom: var(--spacing-md);
+}
+
+.activity-heatmap__granularity {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.activity-heatmap__tab {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.activity-heatmap__tab--active {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.activity-heatmap__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.activity-heatmap__cell {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.activity-heatmap__cell:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

@@ -1,0 +1,30 @@
+/**
+ * Figma Code Connect 템플릿 (예시).
+ * 파일명을 Button.figma.tsx로 복사하고 figma 파일·노드 ID를 채운 뒤 Code Connect CLI 연동.
+ *
+ * @see https://www.figma.com/developers/code-connect
+ */
+import { figma } from "@figma/code-connect";
+import { Button } from "../../src/components/ui/Button";
+
+figma.connect(Button, "https://www.figma.com/design/FILE_KEY/...", {
+  props: {
+    variant: figma.enum("Variant", {
+      Primary: "primary",
+      Secondary: "secondary",
+      Ghost: "ghost",
+      Danger: "danger",
+    }),
+    size: figma.enum("Size", {
+      Small: "sm",
+      Medium: "md",
+      Large: "lg",
+    }),
+    children: figma.string("Label"),
+  },
+  example: ({ variant, size, children }) => (
+    <Button variant={variant} size={size}>
+      {children}
+    </Button>
+  ),
+});

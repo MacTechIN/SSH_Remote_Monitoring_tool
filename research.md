@@ -153,6 +153,20 @@ OpenAPI는 FastAPI 자동 문서 (`/docs`).
 - **Recharts**: 일별 24시간 drill-down.
 - 화면: 대시보드, 활동 캘린더, 호스트 관리, 검색 (plan.md와 동일).
 
+### 6.1 Figma 디자인 대체 준비 (추가)
+
+추후 Figma에서 완성된 UI로 **스타일·레이아웃만 교체**할 수 있도록 다음을 채택한다.
+
+| 원칙 | 설명 |
+|------|------|
+| **Design Tokens** | Figma Variables → `tokens.json` / `tokens.css` / `figma-map.json` |
+| **UI / Feature 분리** | `components/ui` = Figma 1:1, `features/*View` = Presentational, `*Container` = API·WS |
+| **토큰 단일 소스** | hex 하드코딩 금지; heatmap 색은 `--activity-0`…`4` |
+| **Code Connect** | `web/figma/code-connect/*.figma.tsx` (선택) |
+| **동기화 스크립트** | `scripts/sync-tokens-from-figma.mjs` 스켈레톤 |
+
+상세: [docs/design-system.md](./docs/design-system.md), 스캐폴드: [web/](./web/)
+
 ---
 
 ## 7. Celery 작업 설계
@@ -184,6 +198,11 @@ OpenAPI는 FastAPI 자동 문서 (`/docs`).
 ├── worker/
 │   └── celery_app.py     # tasks (또는 backend/app/worker)
 ├── web/                  # Next.js
+│   ├── src/design-tokens/
+│   ├── src/components/ui/       # Figma primitives
+│   ├── src/components/features/ # View + Container
+│   └── figma/code-connect/
+├── docs/design-system.md
 ├── docker-compose.yml
 └── .github/workflows/
 ```
@@ -208,6 +227,7 @@ OpenAPI는 FastAPI 자동 문서 (`/docs`).
 - [ ] **asyncssh** 우선, Paramiko fallback 검토 수용
 - [ ] **TimescaleDB** hypertable·rollup 전략 수용
 - [ ] 기본 **폴링 60초**, 호스트 **~50대** 가정 (변경 가능)
+- [ ] **Figma 대체** — design tokens + View/Container 분리 구조 수용
 
 **승인자:** _______________  
 **승인일:** _______________

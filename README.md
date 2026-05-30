@@ -22,6 +22,7 @@
 
 - **옵션 A** (Python / FastAPI) 선택
 - 설계 문서 초안 작성됨
+- **Figma 대체용** `web/` UI 스캐폴드 (design tokens, ui primitives, View/Container 패턴)
 - 코드 구현: `implement.md` 게이트 승인 후 착수
 
 > 이전 옵션 B(NestJS) 설계는 브랜치 `cursor/option-b-docs-574a`에 보관되어 있습니다.

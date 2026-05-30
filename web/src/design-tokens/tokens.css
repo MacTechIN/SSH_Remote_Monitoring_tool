@@ -1,0 +1,66 @@
+/**
+ * Design tokens — single source for runtime styles.
+ * Figma Variables 반영 시 이 파일(또는 tokens.json → build)만 갱신.
+ * 컴포넌트에서 hex 직접 사용 금지.
+ */
+:root,
+[data-theme="light"] {
+  --color-background: #f6f8fa;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f6f8fa;
+  --color-border: #d0d7de;
+  --color-text-primary: #1f2328;
+  --color-text-secondary: #656d76;
+  --color-accent: #1a7f37;
+  --color-accent-muted: #116329;
+  --color-danger: #cf222e;
+  --color-warning: #9a6700;
+  --color-badge-system: #0969da;
+  --color-badge-user: #1a7f37;
+  --color-badge-unknown: #656d76;
+
+  --activity-0: #ebedf0;
+  --activity-1: #9be9a8;
+  --activity-2: #40c463;
+  --activity-3: #30a14e;
+  --activity-4: #216e39;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --font-family-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+}
+
+[data-theme="dark"] {
+  --color-background: #0d1117;
+  --color-surface: #161b22;
+  --color-surface-elevated: #21262d;
+  --color-border: #30363d;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-accent: #238636;
+  --color-accent-muted: #196c2e;
+  --color-danger: #da3633;
+  --color-warning: #d29922;
+  --color-badge-system: #388bfd;
+  --color-badge-user: #3fb950;
+  --color-badge-unknown: #8b949e;
+
+  --activity-0: #161b22;
+  --activity-1: #0e4429;
+  --activity-2: #006d32;
+  --activity-3: #26a641;
+  --activity-4: #39d353;
+}

@@ -106,13 +106,30 @@
 
 ## 6. Next.js
 
-- [ ] 대시보드 + WebSocket hook
-- [ ] `/activity` heatmap + tooltip (day-summary)
-- [ ] `/activity/[date]` Recharts 24h
-- [ ] `/hosts`, `/search`
-- [ ] system/user 뱃지 UI
+### 6.0 Figma 연동 (페이지 구현 시)
+
+- [ ] 모든 페이지: `page.tsx` → `*Container` → `*View`만 렌더
+- [ ] 스타일은 tokens / ui primitives / View 내부만 (Container 무스타일)
+- [ ] Heatmap·차트 색: `getActivityColor()` / CSS 변수
+- [ ] (선택) `/design-preview` — ui primitives + tokens 시각 검증
+
+### 6.1 기능 페이지
+
+- [ ] `DashboardContainer` + `DashboardView` + WebSocket hook
+- [ ] `/activity` — `ActivityHeatmapContainer` + View + day-summary tooltip
+- [ ] `/activity/[date]` Recharts 24h (token colors)
+- [ ] `HostsContainer` + `HostsView`, `SearchContainer` + `SearchView`
+- [ ] classification — `Badge` primitive (Figma 교체 대상)
 
 **게이트 6:** 브라우저 E2E 수동 확인
+
+### 6.2 Figma 디자인 수령 후 (교체 단계)
+
+- [ ] Variables export → `npm run tokens:sync`
+- [ ] `components/ui/*` Figma 컴포넌트로 교체
+- [ ] `*View.tsx` 레이아웃 Figma 스펙 반영
+- [ ] Container·hooks diff 없음 확인
+- [ ] `figma/code-connect/*.figma.tsx` (선택)
 
 ---
 

@@ -17,12 +17,22 @@
 - Next.js: 대시보드, heatmap 캘린더, 호스트 관리, 검색
 - Docker Compose + GitHub Actions (pytest, ruff)
 
-### 1.2 Phase 2 — 이후
+### 1.2 Phase 1 — Figma 대체 준비 (MVP에 포함)
+
+- `web/src/design-tokens/` — placeholder 토큰 + Figma map
+- `components/ui` primitives (`Button`, `Badge`) — token 기반 CSS
+- `features/*View` + `*Container` 패턴 (예: `ActivityHeatmap`)
+- `docs/design-system.md`, `web/DESIGN_HANDOFF.md`
+- `tailwind.preset.ts` — CSS 변수 연동
+- Figma 반영 시 **View·ui·tokens만** 수정, Container·API 무변경
+
+### 1.3 Phase 2 — 이후
 
 - Timescale continuous aggregates, retention 정책 UI
 - 알림(Slack/Email), Flower 모니터링
 - Push 에이전트, RBAC/OAuth2
 - 스냅샷 S3 아카이브
+- Figma Code Connect 전면 연동, Storybook / design-preview 페이지
 
 ---
 
@@ -108,11 +118,14 @@ flowchart TB
 
 | # | 작업 | 산출물 |
 |---|------|--------|
+| 20a | Design tokens + `figma-map` + globals import | `web/src/design-tokens/` |
+| 20b | UI primitives + AppShell (Figma 교체 대상) | `components/ui`, `layouts` |
+| 20c | Feature View/Container 분리 패턴 | `features/*` |
 | 21 | API 클라이언트, 레이아웃 | `web/` |
-| 22 | 대시보드 — 라이브 테이블 (WS) | `/` |
-| 23 | 활동 캘린더 — heatmap + hover | `/activity` |
-| 24 | 24h Recharts drill-down | `/activity/[date]` |
-| 25 | 호스트·검색 페이지 | `/hosts`, `/search` |
+| 22 | `DashboardContainer` + `DashboardView` (WS) | `/` |
+| 23 | `ActivityHeatmapContainer` + `ActivityHeatmapView` | `/activity` |
+| 24 | 24h Recharts drill-down (token 색) | `/activity/[date]` |
+| 25 | `HostsView`, `SearchView` + Container | `/hosts`, `/search` |
 
 ### Phase 1-F — 배포·품질
 
@@ -196,6 +209,21 @@ SELECT create_hypertable('process_snapshots', 'collected_at', if_not_exists => T
 
 ---
 
+## 6.1 UI 아키텍처 (Figma Handoff)
+
+```
+app/(dashboard)/page.tsx          → DashboardContainer only
+features/dashboard/
+  DashboardContainer.tsx          → useLiveSnapshot(), no className
+  DashboardView.tsx               → Figma "Dashboard" frame
+components/ui/                    → Figma design system atoms
+design-tokens/                    → Variables → CSS
+```
+
+Figma 파일 수령 후: [web/DESIGN_HANDOFF.md](./web/DESIGN_HANDOFF.md) 체크리스트 순서 적용.
+
+---
+
 ## 7. 환경 변수
 
 | 변수 | 설명 |
@@ -234,6 +262,7 @@ SELECT create_hypertable('process_snapshots', 'collected_at', if_not_exists => T
 - [ ] FastAPI + Celery + TimescaleDB 구조 동의
 - [ ] API 계약(§5) 동의
 - [ ] 폴링 60초, JWT 최소 인증 동의
+- [ ] Figma 대체용 tokens + View/Container 구조 동의
 
 **승인 후:** `implement.md` §1부터 구현.
 
