@@ -1,0 +1,26 @@
+@import "../design-tokens/tokens.css";
+@import "../components/ui/ui-primitives.css";
+@import "../components/layouts/app-shell.css";
+@import "../components/features/ActivityHeatmap/activity-heatmap.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

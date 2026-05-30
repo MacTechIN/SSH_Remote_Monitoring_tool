@@ -4,9 +4,7 @@
  *
  * Figma 교체 후 tokens.css만 갱신하면 theme 색이 따라감.
  */
-import type { Config } from "tailwindcss";
-
-const preset: Partial<Config> = {
+const preset = {
   theme: {
     extend: {
       colors: {

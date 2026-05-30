@@ -7,9 +7,9 @@
 
 ## 게이트 0 — 문서 승인
 
-- [ ] `research.md` (옵션 A) 검토 완료
-- [ ] `plan.md` 검토 완료
-- [ ] 본 `implement.md` 착수 승인
+- [x] `research.md` (옵션 A) 검토 완료
+- [x] `plan.md` 검토 완료
+- [x] 본 `implement.md` 착수 승인
 
 ---
 
@@ -32,6 +32,18 @@
 
 - [ ] `web/` — Next.js App Router + Tailwind
 - [ ] `NEXT_PUBLIC_API_URL` 환경 변수
+
+### 1.5 Figma 대체 스캐폴드 (선행·문서화됨)
+
+- [x] `web/src/design-tokens/` — tokens.json, tokens.css, figma-map.json, index.ts
+- [x] `web/src/components/ui/` — Button, Badge, ui-primitives.css
+- [x] `web/src/components/layouts/AppShell` + CSS
+- [x] `web/src/components/features/ActivityHeatmap/` — View, types, Container.example
+- [x] `web/tailwind.preset.ts`, `scripts/sync-tokens-from-figma.mjs`
+- [x] `docs/design-system.md`, `web/DESIGN_HANDOFF.md`
+- [ ] Next.js `tsconfig` paths `@/*`, globals.css `@import` 토큰·CSS
+- [ ] `package.json` script: `tokens:sync`
+- [ ] Figma 파일 URL을 `DESIGN_HANDOFF.md`에 기입
 
 ### 1.4 품질
 
@@ -158,6 +170,7 @@
 3. 일/주/월/년 heatmap + hover 일별 요약
 4. 기간·사용자·명령 검색
 5. `docker compose up` + CI 통과
+6. UI가 **View/Container + design tokens** 구조를 따름 (Figma 교체 가능)
 
 ---
 

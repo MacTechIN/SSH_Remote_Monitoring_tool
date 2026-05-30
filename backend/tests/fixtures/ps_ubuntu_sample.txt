@@ -1,0 +1,5 @@
+  PID  PPID USER                             COMM             CMD                         %CPU %MEM     ELAPSED
+    1     0 root                             systemd          /sbin/init                   0.0  0.1  10:00
+ 1234     1 root                             sshd             sshd: user@pts/0             0.1  0.2  01:00
+ 5678  1234 alice                            bash             -bash                        1.0  0.3  00:30
+ 5679  5678 alice                            python3          python3 app.py               5.0  2.0  00:10
