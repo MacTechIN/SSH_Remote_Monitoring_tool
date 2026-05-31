@@ -8,12 +8,15 @@ on:
       - "hosting/**"
       - "backend/**"
       - "firebase.json"
+      - "firebase.hosting-only.json"
       - "firestore.rules"
       - "Dockerfile"
+      - ".github/workflows/firebase-deploy.yml"
 
 jobs:
-  deploy-hosting-firestore:
+  deploy-hosting:
     runs-on: ubuntu-latest
+    if: ${{ secrets.FIREBASE_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,17 +24,19 @@ jobs:
           node-version: "22"
       - run: npm ci
       - run: bash scripts/prepare-hosting.sh
-      - uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - uses: google-github-actions/setup-gcloud@v2
       - run: npm install -g firebase-tools
-      - run: firebase deploy --only hosting,firestore --project ssh-analyzer --non-interactive
+      - name: Deploy Hosting (static UI first)
+        run: firebase deploy --only hosting --project ssh-analyzer --config firebase.hosting-only.json --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Deploy Firestore rules
+        run: firebase deploy --only firestore --project ssh-analyzer --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
   deploy-cloud-run:
     runs-on: ubuntu-latest
+    if: ${{ secrets.GCP_SA_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: google-github-actions/auth@v2
@@ -47,3 +52,12 @@ jobs:
             --set-env-vars "STORAGE_BACKEND=firestore,FIREBASE_AUTH_REQUIRED=true,HISTORY_ENABLED=true" \
             --memory 512Mi \
             --timeout 120
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install -g firebase-tools
+      - name: Deploy Hosting rewrites to Cloud Run
+        if: ${{ secrets.FIREBASE_TOKEN != '' }}
+        run: firebase deploy --only hosting --project ssh-analyzer --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
