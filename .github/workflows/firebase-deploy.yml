@@ -1,0 +1,49 @@
+name: Deploy Firebase
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "hosting/**"
+      - "backend/**"
+      - "firebase.json"
+      - "firestore.rules"
+      - "Dockerfile"
+
+jobs:
+  deploy-hosting-firestore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: bash scripts/prepare-hosting.sh
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: npm install -g firebase-tools
+      - run: firebase deploy --only hosting,firestore --project ssh-analyzer --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  deploy-cloud-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: |
+          gcloud run deploy ssh-monitor-api \
+            --source . \
+            --region asia-northeast3 \
+            --project ssh-analyzer \
+            --allow-unauthenticated \
+            --set-env-vars "STORAGE_BACKEND=firestore,FIREBASE_AUTH_REQUIRED=true,HISTORY_ENABLED=true" \
+            --memory 512Mi \
+            --timeout 120
