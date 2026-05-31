@@ -15,4 +15,3 @@ node_modules/
 .firebase/
 hosting/public/firebase-config.local.js
 serviceAccount*.json
-.firebaserc
