@@ -1,0 +1,10 @@
+# Copy to config/hosts.yaml and adjust credentials.
+# Prefer SSH keys; set SSH_PRIVATE_KEY_PATH or per-host private_key_path.
+
+hosts:
+  - id: example-server
+    name: Example Server
+    hostname: 192.168.1.10
+    port: 22
+    username: ubuntu
+    # private_key_path: ~/.ssh/id_ed25519

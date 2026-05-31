@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSH Remote Monitoring</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div>
+        <h1>SSH Remote Monitoring</h1>
+        <p class="subtitle">원격 Linux 서버 상태를 SSH로 수집합니다</p>
+      </div>
+      <div class="header-actions">
+        <span id="demo-badge" class="badge hidden">DEMO MODE</span>
+        <button id="refresh-btn" type="button">새로고침</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="status-bar" class="status-bar" aria-live="polite"></section>
+      <section id="hosts-grid" class="hosts-grid"></section>
+      <p id="empty-state" class="empty-state hidden">
+        등록된 호스트가 없습니다. <code>config/hosts.yaml</code>을 설정하세요.
+      </p>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
