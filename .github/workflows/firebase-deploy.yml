@@ -18,60 +18,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check FIREBASE_TOKEN
-        run: |
-          if [ -z "${FIREBASE_TOKEN}" ]; then
-            echo "::warning::FIREBASE_TOKEN secret이 없어 Hosting 배포를 건너뜁니다."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - uses: actions/setup-node@v4
-        if: steps.check.outputs.skip != 'true'
         with:
           node-version: "22"
       - run: npm ci
-        if: steps.check.outputs.skip != 'true'
       - run: bash scripts/prepare-hosting.sh
-        if: steps.check.outputs.skip != 'true'
-      - run: npm install -g firebase-tools
-        if: steps.check.outputs.skip != 'true'
-      - name: Deploy Hosting (static UI)
-        if: steps.check.outputs.skip != 'true'
-        run: firebase deploy --only hosting --project ssh-analyzer --config firebase.hosting-only.json --non-interactive
+      - name: Deploy Hosting + Firestore
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      - name: Deploy Firestore rules
-        if: steps.check.outputs.skip != 'true'
-        run: firebase deploy --only firestore --project ssh-analyzer --non-interactive
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          if [ -z "${FIREBASE_TOKEN}" ]; then
+            echo "::warning::Repository secret FIREBASE_TOKEN 이 없습니다. Hosting 배포를 건너뜁니다."
+            exit 0
+          fi
+          npm install -g firebase-tools
+          firebase deploy --only hosting --project ssh-analyzer --config firebase.hosting-only.json --non-interactive
+          firebase deploy --only firestore --project ssh-analyzer --non-interactive
 
   deploy-cloud-run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check GCP_SA_KEY
-        run: |
-          if [ -z "${GCP_SA_KEY}" ]; then
-            echo "::warning::GCP_SA_KEY secret이 없어 Cloud Run 배포를 건너뜁니다."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
+      - name: Deploy Cloud Run API
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-      - uses: google-github-actions/auth@v2
-        if: steps.check.outputs.skip != 'true'
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - uses: google-github-actions/setup-gcloud@v2
-        if: steps.check.outputs.skip != 'true'
-      - name: Deploy Cloud Run API
-        if: steps.check.outputs.skip != 'true'
         run: |
+          if [ -z "${GCP_SA_KEY}" ]; then
+            echo "::warning::Repository secret GCP_SA_KEY 가 없습니다. Cloud Run 배포를 건너뜁니다."
+            exit 0
+          fi
+          echo "${GCP_SA_KEY}" > "${RUNNER_TEMP}/gcp-key.json"
+          gcloud auth activate-service-account --key-file="${RUNNER_TEMP}/gcp-key.json"
+          gcloud config set project ssh-analyzer
           gcloud run deploy ssh-monitor-api \
             --source . \
             --region asia-northeast3 \
-            --project ssh-analyzer \
             --allow-unauthenticated \
             --set-env-vars "STORAGE_BACKEND=firestore,FIREBASE_AUTH_REQUIRED=true,HISTORY_ENABLED=true" \
             --memory 512Mi \
