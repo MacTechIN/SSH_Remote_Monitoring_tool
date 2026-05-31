@@ -169,6 +169,14 @@ def host_history(
     return get_history(host_id, limit=limit)
 
 
+
+@app.get("/firebase-config.js")
+def firebase_config() -> FileResponse:
+    path = STATIC_DIR / "firebase-config.js"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Firebase config not found")
+    return FileResponse(path, media_type="application/javascript")
+
 @app.get("/")
 def index() -> FileResponse:
     index_path = STATIC_DIR / "index.html"

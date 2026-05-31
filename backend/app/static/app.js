@@ -28,6 +28,13 @@ function initFirebase() {
   }
   firebase.initializeApp(window.__FIREBASE_CONFIG__);
   firebaseAuth = firebase.auth();
+  if (typeof firebase.analytics === "function") {
+    try {
+      firebase.analytics();
+    } catch {
+      /* Analytics may be unavailable on some origins */
+    }
+  }
   authPanel?.classList.remove("hidden");
   firebaseAuth.onAuthStateChanged((user) => {
     if (user) {
