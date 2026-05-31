@@ -107,3 +107,17 @@ bash scripts/firebase-deploy.sh
 | `SSH_PRIVATE_KEY` | Secret Manager (권장) |
 
 로컬 개발은 기본값 `STORAGE_BACKEND=file` (YAML + SQLite)을 그대로 사용합니다.
+
+
+## Ubuntu 서버에 직접 설치 (SSH)
+
+VPS/사내 Ubuntu에 앱을 올려 운영하는 방법:
+
+- [docs/ubuntu-server-deploy.md](docs/ubuntu-server-deploy.md)
+
+```bash
+# Ubuntu 서버에서
+git clone https://github.com/MacTechIN/SSH_Remote_Monitoring_tool.git
+cd SSH_Remote_Monitoring_tool
+bash scripts/install-ubuntu-server.sh --systemd
+```
