@@ -7,22 +7,25 @@
 | Service | Required | Start | Port |
 |---------|----------|-------|------|
 | FastAPI (uvicorn) | Yes | `make demo` or `make run` | 8080 |
+| sshd (integration only) | Optional | `make setup-ssh` | 22 |
 
-`make demo` sets `DEMO_MODE=true` and does not require SSH targets. For real SSH checks, configure `config/hosts.yaml` and keys, then `make run`.
+`make demo` sets `DEMO_MODE=true` (no SSH required). For real SSH: `config/hosts.yaml` + keys, then `make run`.
 
 ### Commands
 
 ```bash
-make install-dev   # venv + deps (run once per fresh VM)
+make install-dev
 make lint
-make test
-make demo          # background-friendly: PYTHONPATH=. DEMO_MODE=true uvicorn ...
+make test                 # unit tests only
+make test-integration     # local sshd + real SSH collect
+make demo
 ```
 
-Uvicorn does not hot-reload dependency installs; after `pip install`, restart the server.
+Cloud Agent VMs may need `sudo apt install python3.12-venv` before `make install-dev`.
 
 ### Non-obvious notes
 
-- `config/hosts.yaml` is gitignored; example is `config/hosts.example.yaml`.
-- Committed `config/hosts.yaml` in dev branches may exist for local demo; production should use secrets and real host config.
-- No Docker in the default Cloud Agent image unless installed separately.
+- Hosts are persisted to `HOSTS_FILE` (default `config/hosts.yaml`). No automatic merge with `hosts.example.yaml`.
+- Metrics history uses SQLite at `data/metrics.db` (`METRICS_DB_PATH`). Created on app startup / first record.
+- `config/hosts.yaml` is gitignored; copy from `config/hosts.example.yaml` for local dev.
+- Host CRUD: `POST/PUT/DELETE /api/hosts`, history: `GET /api/hosts/{id}/history`.

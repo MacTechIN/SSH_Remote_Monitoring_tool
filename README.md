@@ -34,6 +34,26 @@ make demo   # DEMO_MODE, http://localhost:8080
 make run
 ```
 
+
+## 호스트 관리 API
+
+| Method | Path | 설명 |
+|--------|------|------|
+| POST | `/api/hosts` | 호스트 등록 |
+| PUT | `/api/hosts/{id}` | 호스트 수정 |
+| DELETE | `/api/hosts/{id}` | 호스트 삭제 |
+| GET | `/api/hosts/{id}/history` | 메트릭 히스토리 (SQLite) |
+
+대시보드에서 **호스트 추가 / 수정 / 삭제** UI를 제공합니다.
+
+## SSH 통합 테스트
+
+```bash
+make test-integration
+```
+
+로컬 `sshd`와 키 인증을 `scripts/setup-local-ssh.sh`로 구성한 뒤 실제 SSH 수집을 검증합니다.
+
 ## API
 
 | Method | Path | 설명 |

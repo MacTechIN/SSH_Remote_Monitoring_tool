@@ -14,6 +14,7 @@
       </div>
       <div class="header-actions">
         <span id="demo-badge" class="badge hidden">DEMO MODE</span>
+        <button id="add-host-btn" type="button" class="btn-secondary">호스트 추가</button>
         <button id="refresh-btn" type="button">새로고침</button>
       </div>
     </header>
@@ -22,9 +23,43 @@
       <section id="status-bar" class="status-bar" aria-live="polite"></section>
       <section id="hosts-grid" class="hosts-grid"></section>
       <p id="empty-state" class="empty-state hidden">
-        등록된 호스트가 없습니다. <code>config/hosts.yaml</code>을 설정하세요.
+        등록된 호스트가 없습니다. <strong>호스트 추가</strong>로 시작하세요.
       </p>
     </main>
+
+    <dialog id="host-dialog" class="host-dialog">
+      <form id="host-form" method="dialog">
+        <h2 id="dialog-title">호스트 추가</h2>
+        <label>
+          ID <span class="hint">(비우면 이름에서 자동 생성)</span>
+          <input id="field-id" name="id" type="text" placeholder="my-server" />
+        </label>
+        <label>
+          표시 이름
+          <input id="field-name" name="name" type="text" required />
+        </label>
+        <label>
+          호스트명 / IP
+          <input id="field-hostname" name="hostname" type="text" required />
+        </label>
+        <label>
+          포트
+          <input id="field-port" name="port" type="number" value="22" min="1" max="65535" required />
+        </label>
+        <label>
+          SSH 사용자
+          <input id="field-username" name="username" type="text" required />
+        </label>
+        <label>
+          개인키 경로 <span class="hint">(선택)</span>
+          <input id="field-key" name="private_key_path" type="text" placeholder="~/.ssh/id_ed25519" />
+        </label>
+        <div class="dialog-actions">
+          <button type="button" id="dialog-cancel" class="btn-secondary">취소</button>
+          <button type="submit" id="dialog-submit">저장</button>
+        </div>
+      </form>
+    </dialog>
 
     <script src="/static/app.js"></script>
   </body>

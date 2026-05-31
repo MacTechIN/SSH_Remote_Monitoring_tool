@@ -27,6 +27,23 @@ class HostSummary(BaseModel):
     username: str
 
 
+class HostCreateRequest(BaseModel):
+    id: str | None = None
+    name: str
+    hostname: str
+    port: int = 22
+    username: str
+    private_key_path: str | None = None
+
+
+class HostUpdateRequest(BaseModel):
+    name: str | None = None
+    hostname: str | None = None
+    port: int | None = None
+    username: str | None = None
+    private_key_path: str | None = None
+
+
 class MemoryMetrics(BaseModel):
     total_mb: int
     used_mb: int

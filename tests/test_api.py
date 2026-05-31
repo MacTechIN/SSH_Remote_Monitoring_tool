@@ -30,11 +30,12 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("HOSTS_FILE", str(hosts_file))
     monkeypatch.setenv("DEMO_MODE", "true")
     get_settings.cache_clear()
-    yield TestClient(app)
+    with TestClient(app) as client:
+        yield client
     get_settings.cache_clear()
 
 
-def test_health(client: TestClient):
+def test_health(client):
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
@@ -55,3 +56,27 @@ def test_dashboard(client: TestClient):
     response = client.get("/")
     assert response.status_code == 200
     assert "SSH Remote Monitoring" in response.text
+
+
+def test_host_crud(client: TestClient):
+    created = client.post(
+        "/api/hosts",
+        json={
+            "name": "New Host",
+            "hostname": "10.0.0.5",
+            "port": 2222,
+            "username": "deploy",
+        },
+    )
+    assert created.status_code == 201
+    host_id = created.json()["id"]
+    assert host_id == "new-host"
+
+    updated = client.put(f"/api/hosts/{host_id}", json={"name": "Renamed"}).json()
+    assert updated["name"] == "Renamed"
+
+    listed = client.get("/api/hosts").json()
+    assert any(item["id"] == host_id for item in listed)
+
+    deleted = client.delete(f"/api/hosts/{host_id}")
+    assert deleted.status_code == 204
