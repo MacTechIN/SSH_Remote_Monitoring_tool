@@ -19,8 +19,13 @@ class Settings(BaseSettings):
     metrics_db_path: Path = Field(default=DEFAULT_METRICS_DB, alias="METRICS_DB_PATH")
     history_enabled: bool = Field(default=True, alias="HISTORY_ENABLED")
     ssh_private_key_path: Path | None = Field(default=None, alias="SSH_PRIVATE_KEY_PATH")
+    ssh_private_key: str | None = Field(default=None, alias="SSH_PRIVATE_KEY")
     ssh_connect_timeout: float = Field(default=10.0, alias="SSH_CONNECT_TIMEOUT")
     command_timeout: float = Field(default=15.0, alias="SSH_COMMAND_TIMEOUT")
+    storage_backend: str = Field(default="file", alias="STORAGE_BACKEND")
+    firebase_project_id: str | None = Field(default=None, alias="FIREBASE_PROJECT_ID")
+    firebase_auth_required: bool = Field(default=False, alias="FIREBASE_AUTH_REQUIRED")
+    cors_origins: str = Field(default="*", alias="CORS_ORIGINS")
     demo_mode: bool = Field(default=False, alias="DEMO_MODE")
 
 

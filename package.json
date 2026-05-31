@@ -1,0 +1,12 @@
+{
+  "name": "ssh-remote-monitoring",
+  "private": true,
+  "scripts": {
+    "build:hosting": "bash scripts/prepare-hosting.sh",
+    "firebase:emulators": "firebase emulators:start",
+    "firebase:deploy": "bash scripts/firebase-deploy.sh"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}

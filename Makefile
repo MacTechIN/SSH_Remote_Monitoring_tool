@@ -33,3 +33,9 @@ run:
 
 demo:
 	PYTHONPATH=. DEMO_MODE=true $(VENV)/bin/uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+
+build-hosting:
+	bash scripts/prepare-hosting.sh
+
+firebase-deploy:
+	bash scripts/firebase-deploy.sh

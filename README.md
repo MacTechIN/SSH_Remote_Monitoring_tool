@@ -84,3 +84,26 @@ make run
 ## 라이선스
 
 MIT (프로젝트 정책에 맞게 조정 가능)
+
+
+## Firebase 프로덕션
+
+실제 서비스 배포는 **Firebase Hosting + Firestore + Cloud Run** 구성을 사용합니다.
+
+```bash
+npm install
+cp .firebaserc.example .firebaserc   # 프로젝트 ID 입력
+# hosting/public/firebase-config.local.js 작성 (docs 참고)
+export FIREBASE_PROJECT_ID=your-project-id
+bash scripts/firebase-deploy.sh
+```
+
+자세한 절차: [docs/firebase-deploy.md](docs/firebase-deploy.md)
+
+| 환경 변수 | 프로덕션 |
+|-----------|----------|
+| `STORAGE_BACKEND` | `firestore` |
+| `FIREBASE_AUTH_REQUIRED` | `true` |
+| `SSH_PRIVATE_KEY` | Secret Manager (권장) |
+
+로컬 개발은 기본값 `STORAGE_BACKEND=file` (YAML + SQLite)을 그대로 사용합니다.

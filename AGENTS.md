@@ -4,28 +4,26 @@
 
 ### Services
 
-| Service | Required | Start | Port |
-|---------|----------|-------|------|
-| FastAPI (uvicorn) | Yes | `make demo` or `make run` | 8080 |
-| sshd (integration only) | Optional | `make setup-ssh` | 22 |
-
-`make demo` sets `DEMO_MODE=true` (no SSH required). For real SSH: `config/hosts.yaml` + keys, then `make run`.
+| Service | Local | Production (Firebase) |
+|---------|-------|-------------------------|
+| API | `make run` / `make demo` :8080 | Cloud Run `ssh-monitor-api` |
+| UI | same origin | Firebase Hosting |
+| Data | YAML + SQLite | Firestore |
 
 ### Commands
 
 ```bash
 make install-dev
-make lint
-make test                 # unit tests only
-make test-integration     # local sshd + real SSH collect
-make demo
+make test
+make demo                    # STORAGE_BACKEND=file
+make build-hosting           # copy static → hosting/public
+bash scripts/firebase-deploy.sh   # needs gcloud + firebase CLI + project
 ```
 
-Cloud Agent VMs may need `sudo apt install python3.12-venv` before `make install-dev`.
+### Environment
 
-### Non-obvious notes
+- Local: `STORAGE_BACKEND=file` (default)
+- Production: `STORAGE_BACKEND=firestore`, `FIREBASE_AUTH_REQUIRED=true`
+- SSH key on Cloud Run: Secret `ssh-monitor-key` → env `SSH_PRIVATE_KEY`
 
-- Hosts are persisted to `HOSTS_FILE` (default `config/hosts.yaml`). No automatic merge with `hosts.example.yaml`.
-- Metrics history uses SQLite at `data/metrics.db` (`METRICS_DB_PATH`). Created on app startup / first record.
-- `config/hosts.yaml` is gitignored; copy from `config/hosts.example.yaml` for local dev.
-- Host CRUD: `POST/PUT/DELETE /api/hosts`, history: `GET /api/hosts/{id}/history`.
+See `docs/firebase-deploy.md` for full deployment steps.

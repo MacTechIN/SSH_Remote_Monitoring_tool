@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import re
 from datetime import UTC, datetime
 from pathlib import Path
@@ -118,20 +119,31 @@ def demo_metrics(host: HostConfig) -> HostMetrics:
     )
 
 
+def _load_pkey(settings, key_path: Path | None):
+    if key_path is not None and key_path.is_file():
+        return paramiko.Ed25519Key.from_private_key_file(str(key_path))
+    if settings.ssh_private_key:
+        return paramiko.Ed25519Key.from_private_key(io.StringIO(settings.ssh_private_key))
+    return None
+
+
 def _connect(host: HostConfig, key_path: Path | None) -> paramiko.SSHClient:
     settings = get_settings()
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    pkey = _load_pkey(settings, key_path)
 
     connect_kwargs: dict = {
         "hostname": host.hostname,
         "port": host.port,
         "username": host.username,
         "timeout": settings.ssh_connect_timeout,
-        "allow_agent": True,
-        "look_for_keys": key_path is None,
+        "allow_agent": pkey is None,
+        "look_for_keys": pkey is None and key_path is None,
     }
-    if key_path is not None:
+    if pkey is not None:
+        connect_kwargs["pkey"] = pkey
+    elif key_path is not None:
         connect_kwargs["key_filename"] = str(key_path)
 
     client.connect(**connect_kwargs)

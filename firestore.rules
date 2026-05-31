@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 프로덕션: 클라이언트 직접 접근 차단 (API는 Admin SDK 사용)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

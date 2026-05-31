@@ -1,11 +1,13 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.config import get_settings, load_hosts
+from backend.app.firebase_auth import verify_firebase_token
 from backend.app.history import get_history, init_db, record_metrics
 from backend.app.host_store import (
     add_host,
@@ -29,15 +31,26 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    init_db()
+    if get_settings().storage_backend == "file":
+        init_db()
     yield
 
 
 app = FastAPI(
     title="SSH Remote Monitoring",
     description="Monitor Linux servers over SSH",
-    version="0.2.0",
+    version="0.3.0",
     lifespan=lifespan,
+)
+
+settings = get_settings()
+origins = [item.strip() for item in settings.cors_origins.split(",") if item.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins or ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 if STATIC_DIR.is_dir():
@@ -65,18 +78,23 @@ def health() -> dict[str, str]:
     settings = get_settings()
     return {
         "status": "ok",
+        "storage_backend": settings.storage_backend,
         "demo_mode": str(settings.demo_mode).lower(),
         "history_enabled": str(settings.history_enabled).lower(),
+        "firebase_auth_required": str(settings.firebase_auth_required).lower(),
     }
 
 
 @app.get("/api/hosts", response_model=list[HostSummary])
-def list_hosts() -> list[HostSummary]:
+def list_hosts(_user: dict | None = Depends(verify_firebase_token)) -> list[HostSummary]:
     return [_to_summary(host) for host in load_hosts()]
 
 
 @app.post("/api/hosts", response_model=HostSummary, status_code=201)
-def create_host(body: HostCreateRequest) -> HostSummary:
+def create_host(
+    body: HostCreateRequest,
+    _user: dict | None = Depends(verify_firebase_token),
+) -> HostSummary:
     hosts = load_hosts()
     base_id = body.id or slugify_id(body.name)
     host_id = unique_host_id(base_id, hosts)
@@ -96,7 +114,11 @@ def create_host(body: HostCreateRequest) -> HostSummary:
 
 
 @app.put("/api/hosts/{host_id}", response_model=HostSummary)
-def replace_host(host_id: str, body: HostUpdateRequest) -> HostSummary:
+def replace_host(
+    host_id: str,
+    body: HostUpdateRequest,
+    _user: dict | None = Depends(verify_firebase_token),
+) -> HostSummary:
     updates = body.model_dump(exclude_none=True)
     if not updates:
         host = get_host(host_id)
@@ -113,7 +135,7 @@ def replace_host(host_id: str, body: HostUpdateRequest) -> HostSummary:
 
 
 @app.delete("/api/hosts/{host_id}", status_code=204)
-def remove_host(host_id: str) -> None:
+def remove_host(host_id: str, _user: dict | None = Depends(verify_firebase_token)) -> None:
     try:
         delete_host(host_id)
     except KeyError as exc:
@@ -121,12 +143,15 @@ def remove_host(host_id: str) -> None:
 
 
 @app.get("/api/metrics", response_model=list[HostMetrics])
-def all_metrics() -> list[HostMetrics]:
+def all_metrics(_user: dict | None = Depends(verify_firebase_token)) -> list[HostMetrics]:
     return _collect_and_record()
 
 
 @app.get("/api/hosts/{host_id}/metrics", response_model=HostMetrics)
-def host_metrics(host_id: str) -> HostMetrics:
+def host_metrics(
+    host_id: str,
+    _user: dict | None = Depends(verify_firebase_token),
+) -> HostMetrics:
     host = get_host(host_id)
     if host is None:
         raise HTTPException(status_code=404, detail=f"Host '{host_id}' not found")
@@ -137,6 +162,7 @@ def host_metrics(host_id: str) -> HostMetrics:
 def host_history(
     host_id: str,
     limit: int = Query(default=50, ge=1, le=500),
+    _user: dict | None = Depends(verify_firebase_token),
 ) -> list[HostMetrics]:
     if get_host(host_id) is None:
         raise HTTPException(status_code=404, detail=f"Host '{host_id}' not found")
