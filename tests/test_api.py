@@ -52,6 +52,20 @@ def test_hosts_and_metrics(client: TestClient):
     assert metrics[0]["memory"]["total_mb"] == 4096
 
 
+def test_host_process_analysis(client: TestClient):
+    snapshot = client.get("/api/hosts/demo/processes")
+    assert snapshot.status_code == 200
+    body = snapshot.json()
+    assert body["status"] == "online"
+    assert body["summary"]["user"] >= 1
+    assert body["summary"]["system"] >= 1
+    assert any(process["category"] == "user" for process in body["processes"])
+
+    history = client.get("/api/hosts/demo/process-history")
+    assert history.status_code == 200
+    assert history.json()[0]["summary"]["user"] >= 1
+
+
 def test_dashboard(client: TestClient):
     response = client.get("/")
     assert response.status_code == 200

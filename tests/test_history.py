@@ -42,3 +42,15 @@ def test_metrics_record_history(client: TestClient):
     history = client.get("/api/hosts/demo/history").json()
     assert len(history) >= 1
     assert history[0]["host_id"] == "demo"
+
+
+def test_process_analysis_record_history(client: TestClient):
+    response = client.get("/api/hosts/demo/processes")
+    assert response.status_code == 200
+    snapshot = response.json()
+    assert snapshot["summary"]["user"] >= 1
+
+    history = client.get("/api/hosts/demo/process-history").json()
+    assert len(history) >= 1
+    assert history[0]["host_id"] == "demo"
+    assert history[0]["summary"]["user"] >= 1

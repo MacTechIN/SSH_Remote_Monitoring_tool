@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from backend.app.models import HostMetrics
+from backend.app.models import HostMetrics, ProcessSnapshot
 
 
 class HistoryRepository(Protocol):
@@ -9,3 +9,7 @@ class HistoryRepository(Protocol):
     def record_metrics(self, metrics: list[HostMetrics]) -> None: ...
 
     def get_history(self, host_id: str, limit: int = 50) -> list[HostMetrics]: ...
+
+    def record_process_snapshot(self, snapshot: ProcessSnapshot) -> None: ...
+
+    def get_process_history(self, host_id: str, limit: int = 20) -> list[ProcessSnapshot]: ...

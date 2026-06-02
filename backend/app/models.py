@@ -10,6 +10,12 @@ class HostStatus(StrEnum):
     ERROR = "error"
 
 
+class ProcessCategory(StrEnum):
+    SYSTEM = "system"
+    USER = "user"
+    UNKNOWN = "unknown"
+
+
 class HostConfig(BaseModel):
     id: str
     name: str
@@ -69,4 +75,33 @@ class HostMetrics(BaseModel):
     load_15: float | None = None
     memory: MemoryMetrics | None = None
     disk: DiskMetrics | None = None
+    error: str | None = None
+
+
+class ProcessInfo(BaseModel):
+    pid: int
+    ppid: int
+    user: str
+    command: str
+    cpu_percent: float = 0.0
+    memory_percent: float = 0.0
+    elapsed: str | None = None
+    cmdline: str
+    category: ProcessCategory = ProcessCategory.UNKNOWN
+    reason: str | None = None
+
+
+class ProcessSummary(BaseModel):
+    total: int = 0
+    system: int = 0
+    user: int = 0
+    unknown: int = 0
+
+
+class ProcessSnapshot(BaseModel):
+    host_id: str
+    status: HostStatus
+    collected_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    summary: ProcessSummary = Field(default_factory=ProcessSummary)
+    processes: list[ProcessInfo] = Field(default_factory=list)
     error: str | None = None
