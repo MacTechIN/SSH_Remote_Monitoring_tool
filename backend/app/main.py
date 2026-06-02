@@ -8,7 +8,13 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.app.config import get_settings, load_hosts
 from backend.app.firebase_auth import verify_firebase_token
-from backend.app.history import get_history, init_db, record_metrics
+from backend.app.history import (
+    get_history,
+    get_process_history,
+    init_db,
+    record_metrics,
+    record_process_snapshot,
+)
 from backend.app.host_store import (
     add_host,
     delete_host,
@@ -23,8 +29,13 @@ from backend.app.models import (
     HostMetrics,
     HostSummary,
     HostUpdateRequest,
+    ProcessSnapshot,
 )
-from backend.app.ssh_monitor import collect_all_metrics, collect_host_metrics
+from backend.app.ssh_monitor import (
+    collect_all_metrics,
+    collect_host_metrics,
+    collect_host_processes,
+)
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -71,6 +82,12 @@ def _collect_and_record(host: HostConfig | None = None) -> list[HostMetrics]:
     metrics = [collect_host_metrics(host)] if host else collect_all_metrics()
     record_metrics(metrics)
     return metrics
+
+
+def _collect_and_record_processes(host: HostConfig) -> ProcessSnapshot:
+    snapshot = collect_host_processes(host)
+    record_process_snapshot(snapshot)
+    return snapshot
 
 
 @app.get("/api/health")
@@ -169,6 +186,27 @@ def host_history(
     return get_history(host_id, limit=limit)
 
 
+@app.get("/api/hosts/{host_id}/processes", response_model=ProcessSnapshot)
+def host_processes(
+    host_id: str,
+    _user: dict | None = Depends(verify_firebase_token),
+) -> ProcessSnapshot:
+    host = get_host(host_id)
+    if host is None:
+        raise HTTPException(status_code=404, detail=f"Host '{host_id}' not found")
+    return _collect_and_record_processes(host)
+
+
+@app.get("/api/hosts/{host_id}/process-history", response_model=list[ProcessSnapshot])
+def host_process_history(
+    host_id: str,
+    limit: int = Query(default=10, ge=1, le=100),
+    _user: dict | None = Depends(verify_firebase_token),
+) -> list[ProcessSnapshot]:
+    if get_host(host_id) is None:
+        raise HTTPException(status_code=404, detail=f"Host '{host_id}' not found")
+    return get_process_history(host_id, limit=limit)
+
 
 @app.get("/firebase-config.js")
 def firebase_config() -> FileResponse:
@@ -176,6 +214,7 @@ def firebase_config() -> FileResponse:
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Firebase config not found")
     return FileResponse(path, media_type="application/javascript")
+
 
 @app.get("/")
 def index() -> FileResponse:

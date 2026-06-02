@@ -292,3 +292,124 @@ main {
 .auth-panel { display: flex; align-items: center; gap: 0.5rem; }
 .auth-user { font-size: 0.8rem; color: var(--muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
 
+.process-dialog {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0;
+  width: min(1100px, 94vw);
+  max-height: 88vh;
+}
+
+.process-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.process-dialog-body {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.process-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.process-dialog-header h2,
+.process-content h3 {
+  margin: 0;
+}
+
+.process-content {
+  display: grid;
+  gap: 1rem;
+  overflow: auto;
+  max-height: 72vh;
+}
+
+.process-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.process-summary div {
+  background: #0b1220;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.process-summary strong {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.process-summary span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.process-table {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.process-row {
+  display: grid;
+  grid-template-columns: 72px 110px 72px 72px minmax(240px, 1fr) minmax(150px, 0.7fr);
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  align-items: center;
+}
+
+.process-row:first-child {
+  border-top: none;
+}
+
+.process-head {
+  background: #0b1220;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.process-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-history {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 760px) {
+  .header,
+  .header-actions {
+    flex-direction: column;
+  }
+
+  .process-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .process-row {
+    grid-template-columns: 64px 88px 56px 56px minmax(180px, 1fr);
+  }
+
+  .process-row span:last-child {
+    display: none;
+  }
+}

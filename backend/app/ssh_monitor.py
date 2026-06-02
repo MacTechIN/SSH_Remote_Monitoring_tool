@@ -14,6 +14,10 @@ from backend.app.models import (
     HostMetrics,
     HostStatus,
     MemoryMetrics,
+    ProcessCategory,
+    ProcessInfo,
+    ProcessSnapshot,
+    ProcessSummary,
 )
 
 METRICS_SCRIPT = """#!/bin/sh
@@ -27,6 +31,63 @@ if command -v free >/dev/null 2>&1; then
 fi
 df -B1 / 2>/dev/null | awk 'NR==2 {printf "DISK:%s %s %s %s\\n", $2, $3, $4, $6}'
 """
+
+PROCESS_SCRIPT = r"""#!/bin/sh
+ps -eo pid=,ppid=,user=,comm=,pcpu=,pmem=,etime=,args= --sort=-pcpu 2>/dev/null | awk '
+{
+  pid=$1; ppid=$2; user=$3; comm=$4; cpu=$5; mem=$6; elapsed=$7;
+  $1=$2=$3=$4=$5=$6=$7="";
+  sub(/^ +/, "");
+  printf "PROC:%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", pid, ppid, user, comm, cpu, mem, elapsed, $0
+}'
+"""
+
+SYSTEM_USERS = {
+    "root",
+    "daemon",
+    "bin",
+    "sys",
+    "sync",
+    "games",
+    "man",
+    "lp",
+    "mail",
+    "news",
+    "uucp",
+    "proxy",
+    "www-data",
+    "backup",
+    "list",
+    "irc",
+    "_apt",
+    "nobody",
+    "systemd-network",
+    "systemd-resolve",
+    "messagebus",
+    "sshd",
+    "syslog",
+}
+
+SYSTEM_COMMANDS = {
+    "systemd",
+    "kthreadd",
+    "kworker",
+    "ksoftirqd",
+    "migration",
+    "rcu_sched",
+    "rcu_preempt",
+    "watchdog",
+    "dbus-daemon",
+    "cron",
+    "rsyslogd",
+    "sshd",
+    "agetty",
+    "udevd",
+    "systemd-journal",
+    "systemd-logind",
+}
+
+USER_PATH_PREFIXES = ("/home/", "/opt/", "/srv/", "/var/www/", "/usr/local/")
 
 
 def _percent(used: int, total: int) -> float:
@@ -89,6 +150,85 @@ def parse_metrics_output(output: str, host_id: str) -> HostMetrics:
     )
 
 
+def classify_process(user: str, command: str, cmdline: str) -> tuple[ProcessCategory, str]:
+    command_lower = command.lower()
+    cmdline_lower = cmdline.lower()
+
+    if cmdline.startswith("[") and cmdline.endswith("]"):
+        return ProcessCategory.SYSTEM, "kernel thread"
+    if any(cmdline.startswith(prefix) for prefix in USER_PATH_PREFIXES):
+        return ProcessCategory.USER, "user-managed path"
+    if f"/home/{user}/" in cmdline or "/run/user/" in cmdline:
+        return ProcessCategory.USER, "user home or session path"
+    if user not in SYSTEM_USERS:
+        return ProcessCategory.USER, "non-system account"
+    if command_lower in SYSTEM_COMMANDS or cmdline_lower.startswith(("/usr/sbin/", "/sbin/")):
+        return ProcessCategory.SYSTEM, "known Linux system process"
+    if user == "root":
+        return ProcessCategory.SYSTEM, "root-owned system process"
+    return ProcessCategory.UNKNOWN, "classification needs review"
+
+
+def _to_float(value: str) -> float:
+    try:
+        return float(value)
+    except ValueError:
+        return 0.0
+
+
+def _to_int(value: str) -> int:
+    try:
+        return int(value)
+    except ValueError:
+        return 0
+
+
+def _summarize_processes(processes: list[ProcessInfo]) -> ProcessSummary:
+    summary = ProcessSummary(total=len(processes))
+    for process in processes:
+        if process.category == ProcessCategory.SYSTEM:
+            summary.system += 1
+        elif process.category == ProcessCategory.USER:
+            summary.user += 1
+        else:
+            summary.unknown += 1
+    return summary
+
+
+def parse_process_output(output: str, host_id: str) -> ProcessSnapshot:
+    processes: list[ProcessInfo] = []
+    for line in output.splitlines():
+        if not line.startswith("PROC:"):
+            continue
+        parts = line.removeprefix("PROC:").split("\t", maxsplit=7)
+        if len(parts) != 8:
+            continue
+        pid, ppid, user, command, cpu, memory, elapsed, cmdline = parts
+        category, reason = classify_process(user, command, cmdline or command)
+        processes.append(
+            ProcessInfo(
+                pid=_to_int(pid),
+                ppid=_to_int(ppid),
+                user=user,
+                command=command,
+                cpu_percent=_to_float(cpu),
+                memory_percent=_to_float(memory),
+                elapsed=elapsed or None,
+                cmdline=cmdline or command,
+                category=category,
+                reason=reason,
+            )
+        )
+
+    return ProcessSnapshot(
+        host_id=host_id,
+        status=HostStatus.ONLINE,
+        collected_at=datetime.now(UTC),
+        summary=_summarize_processes(processes),
+        processes=processes,
+    )
+
+
 def demo_metrics(host: HostConfig) -> HostMetrics:
     seed = sum(ord(c) for c in host.id)
     used_mem = 2048 + (seed % 512)
@@ -117,6 +257,25 @@ def demo_metrics(host: HostConfig) -> HostMetrics:
             mount="/",
         ),
     )
+
+
+def demo_processes(host: HostConfig) -> ProcessSnapshot:
+    rows = [
+        "PROC:1\t0\troot\tsystemd\t0.0\t0.1\t12-03:10:00\t/sbin/init",
+        "PROC:42\t2\troot\tkworker\t0.0\t0.0\t12-03:09:58\t[kworker/0:1]",
+        "PROC:901\t1\troot\tsshd\t0.0\t0.2\t2-01:02:03\t/usr/sbin/sshd -D",
+        (
+            f"PROC:1204\t1\t{host.username}\tpython\t4.5\t3.1\t01:14:22\t"
+            f"/home/{host.username}/apps/report-worker/.venv/bin/python worker.py"
+        ),
+        (
+            f"PROC:1288\t1204\t{host.username}\tnode\t1.8\t4.2\t00:31:09\t"
+            "/opt/customer-api/node server.js"
+        ),
+        "PROC:1301\t1\tdeploy\tjava\t9.9\t18.4\t03:44:11\t/srv/batch/bin/java -jar batch.jar",
+    ]
+    sample = "\n".join(rows)
+    return parse_process_output(sample, host.id)
 
 
 def _load_pkey(settings, key_path: Path | None):
@@ -199,6 +358,62 @@ def collect_host_metrics(host: HostConfig) -> HostMetrics:
             host_id=host.id,
             status=status,
             checked_at=datetime.now(UTC),
+            error=str(exc),
+        )
+    finally:
+        if client is not None:
+            client.close()
+
+
+def collect_host_processes(host: HostConfig) -> ProcessSnapshot:
+    settings = get_settings()
+    if settings.demo_mode:
+        return demo_processes(host)
+
+    key_path = resolve_private_key_path(host, settings)
+    client: paramiko.SSHClient | None = None
+    try:
+        client = _connect(host, key_path)
+        _, stdout, stderr = client.exec_command(
+            PROCESS_SCRIPT,
+            timeout=settings.command_timeout,
+        )
+        exit_code = stdout.channel.recv_exit_status()
+        output = stdout.read().decode("utf-8", errors="replace")
+        errors = stderr.read().decode("utf-8", errors="replace").strip()
+
+        if exit_code != 0:
+            message = errors or f"Remote process script exited with code {exit_code}"
+            return ProcessSnapshot(
+                host_id=host.id,
+                status=HostStatus.ERROR,
+                collected_at=datetime.now(UTC),
+                error=message,
+            )
+
+        if not output.strip():
+            return ProcessSnapshot(
+                host_id=host.id,
+                status=HostStatus.ERROR,
+                collected_at=datetime.now(UTC),
+                error="Empty process response from remote host",
+            )
+
+        return parse_process_output(output, host.id)
+    except paramiko.AuthenticationException:
+        return ProcessSnapshot(
+            host_id=host.id,
+            status=HostStatus.ERROR,
+            collected_at=datetime.now(UTC),
+            error="SSH authentication failed",
+        )
+    except (paramiko.SSHException, OSError, TimeoutError) as exc:
+        offline_pattern = re.compile(r"(timed out|unable to connect|no route|refused)", re.I)
+        status = HostStatus.OFFLINE if offline_pattern.search(str(exc)) else HostStatus.ERROR
+        return ProcessSnapshot(
+            host_id=host.id,
+            status=status,
+            collected_at=datetime.now(UTC),
             error=str(exc),
         )
     finally:

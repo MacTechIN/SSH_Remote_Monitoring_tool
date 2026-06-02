@@ -18,6 +18,10 @@ const authUser = document.getElementById("auth-user");
 const loginDialog = document.getElementById("login-dialog");
 const loginForm = document.getElementById("login-form");
 const loginCancel = document.getElementById("login-cancel");
+const processDialog = document.getElementById("process-dialog");
+const processTitle = document.getElementById("process-title");
+const processContent = document.getElementById("process-content");
+const processClose = document.getElementById("process-close");
 
 let editingHostId = null;
 let firebaseAuth = null;
@@ -77,9 +81,23 @@ function formatBytes(bytes) {
   return `${value.toFixed(1)} ${units[unit]}`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function statusLabel(status) {
   const labels = { online: "온라인", offline: "오프라인", error: "오류" };
   return labels[status] || status;
+}
+
+function categoryLabel(category) {
+  const labels = { user: "사용자 프로세스", system: "기본 Linux 프로세스", unknown: "검토 필요" };
+  return labels[category] || category;
 }
 
 function renderHistory(history) {
@@ -137,11 +155,97 @@ function renderCard(host, metrics, history) {
     </div>
     ${metrics?.error ? `<p class="error-text">${metrics.error}</p>` : ""}
     <div class="card-actions">
+      <button type="button" data-action="processes" data-id="${host.id}" class="btn-secondary">프로세스 분석</button>
       <button type="button" data-action="edit" data-id="${host.id}">수정</button>
       <button type="button" data-action="delete" data-id="${host.id}" class="btn-danger">삭제</button>
     </div>
   `;
   return card;
+}
+
+function renderProcessRows(processes) {
+  if (!processes.length) {
+    return '<p class="history-empty">해당 분류의 프로세스가 없습니다.</p>';
+  }
+  return `
+    <div class="process-table">
+      <div class="process-row process-head">
+        <span>PID</span><span>사용자</span><span>CPU</span><span>MEM</span><span>명령</span><span>분류 근거</span>
+      </div>
+      ${processes
+        .map(
+          (process) => `
+            <div class="process-row">
+              <span>${process.pid}</span>
+              <span>${escapeHtml(process.user)}</span>
+              <span>${process.cpu_percent.toFixed(1)}%</span>
+              <span>${process.memory_percent.toFixed(1)}%</span>
+              <span title="${escapeHtml(process.cmdline)}">${escapeHtml(process.cmdline)}</span>
+              <span>${escapeHtml(process.reason || "")}</span>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function renderProcessAnalysis(host, snapshot, history) {
+  const userProcesses = snapshot.processes.filter((process) => process.category === "user");
+  const systemProcesses = snapshot.processes.filter((process) => process.category === "system");
+  const unknownProcesses = snapshot.processes.filter((process) => process.category === "unknown");
+  const historyItems = history
+    .slice(0, 6)
+    .map((item) => {
+      const time = new Date(item.collected_at).toLocaleString();
+      return `<li>${time} · 사용자 ${item.summary.user} · 시스템 ${item.summary.system} · 검토 ${item.summary.unknown}</li>`;
+    })
+    .join("");
+
+  processTitle.textContent = `${host.name} 프로세스 분석`;
+  processContent.innerHTML = `
+    <section class="process-summary">
+      <div><strong>${snapshot.summary.total}</strong><span>전체</span></div>
+      <div><strong>${snapshot.summary.user}</strong><span>사용자 생성</span></div>
+      <div><strong>${snapshot.summary.system}</strong><span>기본 Linux</span></div>
+      <div><strong>${snapshot.summary.unknown}</strong><span>검토 필요</span></div>
+    </section>
+    ${snapshot.error ? `<p class="error-text">${escapeHtml(snapshot.error)}</p>` : ""}
+    <section>
+      <h3>${categoryLabel("user")}</h3>
+      ${renderProcessRows(userProcesses)}
+    </section>
+    <section>
+      <h3>${categoryLabel("unknown")}</h3>
+      ${renderProcessRows(unknownProcesses)}
+    </section>
+    <section>
+      <h3>${categoryLabel("system")}</h3>
+      ${renderProcessRows(systemProcesses)}
+    </section>
+    <section>
+      <h3>최근 분석 기록</h3>
+      ${historyItems ? `<ul class="process-history">${historyItems}</ul>` : '<p class="history-empty">기록 없음</p>'}
+    </section>
+  `;
+}
+
+async function analyzeProcesses(host) {
+  processTitle.textContent = `${host.name} 프로세스 분석`;
+  processContent.innerHTML = '<p class="history-empty">SSH로 프로세스 목록을 수집하는 중…</p>';
+  processDialog.showModal();
+  try {
+    const [snapshotRes, historyRes] = await Promise.all([
+      apiFetch(`/api/hosts/${host.id}/processes`),
+      apiFetch(`/api/hosts/${host.id}/process-history?limit=6`),
+    ]);
+    if (!snapshotRes.ok) throw new Error("프로세스 분석 API 요청 실패");
+    const snapshot = await snapshotRes.json();
+    const history = historyRes.ok ? await historyRes.json() : [];
+    renderProcessAnalysis(host, snapshot, history);
+  } catch (err) {
+    processContent.innerHTML = `<p class="error-text">${escapeHtml(err.message)}</p>`;
+  }
 }
 
 async function fetchHistory(hostId) {
@@ -241,6 +345,12 @@ async function loadDashboard() {
         openDialog(host);
       });
     });
+    grid.querySelectorAll("[data-action=processes]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const host = hosts.find((item) => item.id === btn.dataset.id);
+        analyzeProcesses(host);
+      });
+    });
     grid.querySelectorAll("[data-action=delete]").forEach((btn) => {
       btn.addEventListener("click", () => deleteHost(btn.dataset.id));
     });
@@ -275,6 +385,7 @@ refreshBtn.addEventListener("click", loadDashboard);
 addHostBtn.addEventListener("click", () => openDialog());
 dialogCancel.addEventListener("click", () => hostDialog.close());
 hostForm.addEventListener("submit", submitHostForm);
+processClose.addEventListener("click", () => processDialog.close());
 
 initFirebase();
 loadDashboard();

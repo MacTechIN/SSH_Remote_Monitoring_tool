@@ -1,5 +1,4 @@
-// Firebase web app: ssh-analyzer
-// https://console.firebase.google.com/project/ssh-analyzer
+// Web app runtime configuration.
 window.__FIREBASE_CONFIG__ = {
   apiKey: "AIzaSyAxgnvcE9NhJ53qSDc8Z75Y8i78WzxCocE",
   authDomain: "ssh-analyzer.firebaseapp.com",
@@ -9,4 +8,4 @@ window.__FIREBASE_CONFIG__ = {
   appId: "1:138497293469:web:175147138960f7b3106874",
   measurementId: "G-NW9VBST4ZT",
 };
-window.__FIREBASE_AUTH_ENABLED__ = true;
+window.__FIREBASE_AUTH_ENABLED__ = false;
