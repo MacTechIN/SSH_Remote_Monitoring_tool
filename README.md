@@ -1,11 +1,15 @@
 # SSH Remote Monitoring Tool
 
-Linux 서버를 SSH로 연결해 업타임, 로드, 메모리, 디스크 사용량을 웹 대시보드에서 확인하는 도구입니다.
+Linux 서버를 SSH로 연결해 시스템 지표와 현재 프로세스를 분석하는 웹 대시보드입니다.
+Firebase는 웹앱 호스팅, 인증, Firestore 기록 저장을 담당하고, 실제 분석은 사용자가
+추가한 호스트에 SSH로 접속해 수행합니다.
 
 ## 기능
 
 - `config/hosts.yaml`에 여러 호스트 등록
 - SSH로 원격 셸 스크립트 실행 후 메트릭 파싱
+- 현재 프로세스를 기본 Linux 프로세스와 사용자 생성 프로세스로 분리
+- 사용자 생성 프로세스의 명령, 실행 계정, CPU/메모리 사용량, 실행 시간을 기록
 - REST API + 웹 대시보드 (`/`)
 - `DEMO_MODE=true`로 SSH 없이 UI/API 개발·데모 가능
 
@@ -62,6 +66,8 @@ make test-integration
 | GET | `/api/hosts` | 등록된 호스트 목록 |
 | GET | `/api/metrics` | 전체 호스트 메트릭 |
 | GET | `/api/hosts/{id}/metrics` | 단일 호스트 메트릭 |
+| GET | `/api/hosts/{id}/processes` | SSH 프로세스 분석 및 기록 |
+| GET | `/api/hosts/{id}/process-history` | 프로세스 분석 기록 |
 
 ## 환경 변수
 
@@ -89,6 +95,8 @@ MIT (프로젝트 정책에 맞게 조정 가능)
 ## Firebase 프로덕션
 
 실제 서비스 배포는 **Firebase Hosting + Firestore + Cloud Run** 구성을 사용합니다.
+Hosting은 정적 웹앱을 제공하고, Firestore는 호스트/분석 기록을 저장하며, Cloud Run API가
+등록된 Linux 호스트로 SSH 접속해 메트릭과 프로세스를 수집합니다.
 
 ```bash
 npm install

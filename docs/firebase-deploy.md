@@ -1,18 +1,22 @@
 # Firebase 프로덕션 배포 가이드
 
 SSH Remote Monitoring을 **Firebase Hosting + Firestore + Cloud Run**으로 운영하는 방법입니다.
+Firebase는 웹앱 호스팅, 사용자 인증, DB 저장소 역할을 맡고, Cloud Run API가 사용자가
+등록한 Linux 호스트에 SSH로 접속해 프로세스와 시스템 지표를 분석합니다.
 
 ## 아키텍처
 
 | 구성 요소 | 역할 |
 |-----------|------|
 | **Firebase Hosting** | 대시보드 정적 파일 (`hosting/public`) |
-| **Cloud Run** | FastAPI API + SSH 메트릭 수집 (`ssh-monitor-api`) |
-| **Firestore** | 호스트 설정·메트릭 히스토리 |
+| **Cloud Run** | FastAPI API + SSH 메트릭·프로세스 분석 (`ssh-monitor-api`) |
+| **Firestore** | 호스트 설정·메트릭·프로세스 분석 히스토리 |
 | **Firebase Authentication** | 사용자 로그인 (이메일/비밀번호 등) |
 | **Secret Manager** | SSH 개인키 (`ssh-monitor-key`) |
 
 Hosting의 `/api/**` 요청은 `firebase.json` rewrite로 Cloud Run으로 전달됩니다.
+사용자는 대시보드에서 호스트를 추가하고, 각 호스트의 **프로세스 분석**을 실행해 기본
+Linux 프로세스와 사용자 생성 프로세스를 분리해 확인합니다.
 
 ## 1. 사전 준비
 

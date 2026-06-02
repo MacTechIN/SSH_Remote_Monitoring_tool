@@ -158,7 +158,7 @@ def classify_process(user: str, command: str, cmdline: str) -> tuple[ProcessCate
         return ProcessCategory.SYSTEM, "kernel thread"
     if any(cmdline.startswith(prefix) for prefix in USER_PATH_PREFIXES):
         return ProcessCategory.USER, "user-managed path"
-    if f"/home/{user}/" in cmdline or f"/run/user/" in cmdline:
+    if f"/home/{user}/" in cmdline or "/run/user/" in cmdline:
         return ProcessCategory.USER, "user home or session path"
     if user not in SYSTEM_USERS:
         return ProcessCategory.USER, "non-system account"
@@ -260,14 +260,21 @@ def demo_metrics(host: HostConfig) -> HostMetrics:
 
 
 def demo_processes(host: HostConfig) -> ProcessSnapshot:
-    sample = f"""
-PROC:1\t0\troot\tsystemd\t0.0\t0.1\t12-03:10:00\t/sbin/init
-PROC:42\t2\troot\tkworker\t0.0\t0.0\t12-03:09:58\t[kworker/0:1]
-PROC:901\t1\troot\tsshd\t0.0\t0.2\t2-01:02:03\t/usr/sbin/sshd -D
-PROC:1204\t1\t{host.username}\tpython\t4.5\t3.1\t01:14:22\t/home/{host.username}/apps/report-worker/.venv/bin/python worker.py
-PROC:1288\t1204\t{host.username}\tnode\t1.8\t4.2\t00:31:09\t/opt/customer-api/node server.js
-PROC:1301\t1\tdeploy\tjava\t9.9\t18.4\t03:44:11\t/srv/batch/current/bin/java -jar batch.jar
-""".strip()
+    rows = [
+        "PROC:1\t0\troot\tsystemd\t0.0\t0.1\t12-03:10:00\t/sbin/init",
+        "PROC:42\t2\troot\tkworker\t0.0\t0.0\t12-03:09:58\t[kworker/0:1]",
+        "PROC:901\t1\troot\tsshd\t0.0\t0.2\t2-01:02:03\t/usr/sbin/sshd -D",
+        (
+            f"PROC:1204\t1\t{host.username}\tpython\t4.5\t3.1\t01:14:22\t"
+            f"/home/{host.username}/apps/report-worker/.venv/bin/python worker.py"
+        ),
+        (
+            f"PROC:1288\t1204\t{host.username}\tnode\t1.8\t4.2\t00:31:09\t"
+            "/opt/customer-api/node server.js"
+        ),
+        "PROC:1301\t1\tdeploy\tjava\t9.9\t18.4\t03:44:11\t/srv/batch/bin/java -jar batch.jar",
+    ]
+    sample = "\n".join(rows)
     return parse_process_output(sample, host.id)
 
 

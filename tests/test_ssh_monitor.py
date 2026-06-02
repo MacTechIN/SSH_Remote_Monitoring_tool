@@ -1,5 +1,10 @@
 from backend.app.models import HostConfig
-from backend.app.ssh_monitor import demo_metrics, demo_processes, parse_metrics_output, parse_process_output
+from backend.app.ssh_monitor import (
+    demo_metrics,
+    demo_processes,
+    parse_metrics_output,
+    parse_process_output,
+)
 
 
 def test_parse_metrics_output():

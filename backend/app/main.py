@@ -31,7 +31,11 @@ from backend.app.models import (
     HostUpdateRequest,
     ProcessSnapshot,
 )
-from backend.app.ssh_monitor import collect_all_metrics, collect_host_metrics, collect_host_processes
+from backend.app.ssh_monitor import (
+    collect_all_metrics,
+    collect_host_metrics,
+    collect_host_processes,
+)
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -182,7 +186,6 @@ def host_history(
     return get_history(host_id, limit=limit)
 
 
-
 @app.get("/api/hosts/{host_id}/processes", response_model=ProcessSnapshot)
 def host_processes(
     host_id: str,
@@ -211,6 +214,7 @@ def firebase_config() -> FileResponse:
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Firebase config not found")
     return FileResponse(path, media_type="application/javascript")
+
 
 @app.get("/")
 def index() -> FileResponse:
