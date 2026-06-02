@@ -18,12 +18,12 @@ def verify_firebase_token(
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Firebase ID token required",
+            detail="Authentication token required",
         )
     try:
         return auth.verify_id_token(credentials.credentials)
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Firebase ID token",
+            detail="Invalid authentication token",
         ) from exc
